@@ -20,7 +20,7 @@ from aift.image.detection import handwritten
 
 from app.configs import Configs
 
-import requests
+import requests, json
 
 router = APIRouter(tags=["Main"], prefix="/image")
 
@@ -60,7 +60,7 @@ def handle_text_message(event):
 
     user_messages[event.source.user_id]         = event.message.text
 
-    text                        = "Welcome to AIFT-CV model demo, please type following number \n to select the model \n 1.face_blur \n 2.chestXray \n 3.Violent \n 4.NFSW \n 5.Super_resolution"
+    text                        = "Welcome to AIFT-CV model demo, please type following number \n to select the model \n 1.face_blur \n 2.chestXray \n 3.Violent \n 4.NFSW \n 5.Super_resolution \n 6.Person Detector \n 7.CapGen"
 
     # return text response
     send_message(event, text)
@@ -84,27 +84,31 @@ def handle_image_message(event):
     if previous_text =='1':
         result              = face_blur.analyze('image.jpg')
         result_url          = result['URL']
-        send_image(event, result_url)
+        send_image(event, result_url) # Return Image
     elif previous_text == '2':
         result              = chest_classification.analyze('image.jpg', return_json=False)
         result_text         = result[0]['result']
-        send_message(event, result_text)
+        send_message(event, result_text) # Return Text
     elif previous_text == '3':
         result              = violence_classification.analyze('image.jpg')
         result_text         = result['objects'][0]['result']
-        send_message(event, result_text)
+        send_message(event, result_text) # Return Text
     elif previous_text == '4':
         result              = nsfw.analyze('image.jpg')
         result_text         = result['objects'][0]['result']
-        send_message(event, result_text)
+        send_message(event, result_text) # Return Text
     elif previous_text == '5':
         result              = super_resolution.analyze('image.jpg')
         result_url          = result['url']
-        send_image(event, result_url)
+        send_image(event, result_url) # Return Image
         
-    # elif previous_text == '6':
-    #     result              = person_detection(cfg.AIFORTHAI_APIKEY,'image.jpg')
-    #     send_image(event, result)
+    elif previous_text == '6':
+        result              = person_detection(cfg.AIFORTHAI_APIKEY,'image.jpg')
+        send_image(event, result)
+        
+    elif previous_text == '7':
+        result              = image_caption(cfg.AIFORTHAI_APIKEY, 'image.jpg')
+        send_message(event, result)
 
     else:
         send_message(event, 'Please type the number first')
@@ -157,3 +161,14 @@ def person_detection(AIFORTHAI_APIKEY, image_dir):
     response        = response.json()['human_img']
     response        = convert_http_to_https(response)
     return response
+
+def image_caption(AIFORTHAI_APIKEY, image_dir):
+    url ='https://api.aiforthai.in.th/capgen'
+    headers = {'Apikey': AIFORTHAI_APIKEY}
+    payload = {}
+    files=[
+    ('file',(image_dir,open('image.jpg','rb'),'image/jpeg'))
+    ]
+
+    response = requests.request("POST", url, headers=headers, data=payload, files=files)
+    return response.json()["caption"]
