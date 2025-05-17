@@ -223,8 +223,8 @@ def handle_text_message(event):
             send_message(event, str(result))
         
         elif matched_command == "#vajatts":
-            speaker = 0 #[0=เสียงผู้ชาย, 1=เสียงผู้หญิง, 2=เด็กผู้ชาย, 3=เด็กผู้หญิง]
-            tts.convert(event.message.text, cfg.DIR_FILE+cfg.WAV_FILE, speaker=speaker) 
+            speaker = event.message.text[9:10] #[0=เสียงผู้ชาย, 1=เสียงผู้หญิง, 2=เด็กผู้ชาย, 3=เด็กผู้หญิง]
+            tts.convert(event.message.text[11:], cfg.DIR_FILE+cfg.WAV_FILE, speaker=speaker) 
 
             audio_url = cfg.WAV_URL+cfg.DIR_FILE+cfg.WAV_FILE
             audio_duration = get_wav_duration_in_ms(cfg.DIR_FILE+cfg.WAV_FILE)
